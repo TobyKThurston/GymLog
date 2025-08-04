@@ -1,30 +1,46 @@
 "use client";
-import { useEffect, useState, createContext, useContext } from "react";
-import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "firebase/auth";
+
+import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { onAuthStateChanged, signOut, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 
-const AuthContext = createContext<{ user: any; loading: boolean }>({ user: null, loading: true });
+interface AuthContextType {
+  user: User | null;
+  loading: boolean;
+  logout: () => Promise<void>;
+}
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<any>(null);
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  loading: true,
+  logout: async () => {},
+});
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
       setUser(u);
       setLoading(false);
     });
-    return () => unsub();
+    return unsubscribe;
   }, []);
 
-  return <AuthContext.Provider value={{ user, loading }}>{children}</AuthContext.Provider>;
+  const logout = async () => {
+    await signOut(auth);
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, loading, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
   return useContext(AuthContext);
 }
 
-// helpers you can call from UI:
-export const login = (email: string, password: string) => signInWithEmailAndPassword(auth, email, password);
-export const register = (email: string, password: string) => createUserWithEmailAndPassword(auth, email, password);
-export const logout = () => signOut(auth);
+

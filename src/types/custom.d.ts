@@ -1,9 +1,8 @@
 // src/types/custom.d.ts
 
-// react-chartjs-2 doesn’t ship its own types in some setups, declare it so TS stops complaining
 declare module "react-chartjs-2";
 
-// fallback declarations for the implicit libraries throwing missing-definition errors
+// fallback declarations for implicit libraries that were showing missing type errors
 declare module "d3-color";
 declare module "d3-ease";
 declare module "d3-path";

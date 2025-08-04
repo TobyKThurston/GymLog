@@ -1,4 +1,3 @@
-// src/components/AuthForm.tsx
 "use client";
 
 import { useState } from "react";
@@ -17,25 +16,23 @@ export default function AuthForm() {
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
-    } catch (e: any) {
-      setError(e.message || "Google sign-in failed");
+    } catch (e) {
+      if (e instanceof Error) setError(e.message);
+      else setError(String(e));
     } finally {
       setWorking(false);
     }
   };
 
-  if (loading) return <div className="p-4">Loading auth...</div>;
+  if (loading) return <div className="p-4">Loading authentication...</div>;
 
   if (user) {
     return (
       <div className="flex items-center gap-4 p-4 bg-white/5 rounded max-w-md mx-auto">
         <div className="flex-1">
-          Signed in as <span className="font-bold">{user.displayName || user.email}</span>
+          Signed in as <span className="font-bold">{user.displayName || user.email || user.uid}</span>
         </div>
-        <button
-          onClick={() => signOut(auth)}
-          className="px-3 py-1 bg-red-600 rounded text-sm"
-        >
+        <button onClick={() => void signOut(auth)} className="px-3 py-1 bg-red-600 rounded text-sm">
           Log out
         </button>
       </div>
@@ -48,7 +45,7 @@ export default function AuthForm() {
       <button
         onClick={signInWithGoogle}
         disabled={working}
-        className="w-full py-2 bg-white text-black rounded font-semibold flex items-center justify-center gap-2"
+        className="w-full py-2 bg-white text-black rounded font-semibold"
       >
         {working ? "Signing in..." : "Sign in with Google"}
       </button>

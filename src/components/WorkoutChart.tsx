@@ -11,6 +11,7 @@ import {
   Legend,
   Title,
   Filler,
+  type TooltipItem,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 
@@ -26,7 +27,7 @@ ChartJS.register(
 );
 
 type DataPoint = {
-  date: string; // ISO-ish string like "2025-08-04"
+  date: string;
   weight: number;
 };
 
@@ -93,7 +94,7 @@ export default function WorkoutChart({
         },
         tooltip: {
           callbacks: {
-            label: (ctx: any) => {
+            label: (ctx: TooltipItem<"line">) => {
               const val = ctx.parsed.y;
               return `${val} lbs`;
             },
@@ -105,7 +106,7 @@ export default function WorkoutChart({
           beginAtZero: true as const,
           ticks: {
             stepSize: 20,
-            callback: (val: any) => `${val}`,
+            callback: (value: string | number) => `${value}`,
           },
           grid: {
             drawBorder: false,
@@ -120,7 +121,6 @@ export default function WorkoutChart({
     };
   }, []);
 
-  // If there is no data, show a placeholder
   if (!dataPoints || dataPoints.length === 0) {
     return (
       <div className="min-w-[300px] bg-white/5 p-4 rounded-xl snap-start flex flex-col">
@@ -147,6 +147,7 @@ export default function WorkoutChart({
     </div>
   );
 }
+
 
   
 

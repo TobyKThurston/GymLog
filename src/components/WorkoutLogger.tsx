@@ -1,19 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAuth, logout } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import AuthForm from "@/components/AuthForm";
-import { where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import WorkoutChart from "@/components/WorkoutChart";
 import {
   collection,
   addDoc,
   getDocs,
   query,
   orderBy,
-  Timestamp as FirestoreTimestamp,
+  where,
+  Timestamp,
+  type QueryDocumentSnapshot,
+  type DocumentData,
 } from "firebase/firestore";
-import WorkoutChart from "@/components/WorkoutChart";
 
 type SetEntry = {
   exercise: string;
@@ -22,7 +24,7 @@ type SetEntry = {
 };
 
 type WorkoutDoc = {
-  date: any; // Firestore timestamp
+  date: Timestamp;
   sets: SetEntry[];
   userId?: string;
 };
@@ -63,7 +65,7 @@ const exercises = [
 ];
 
 export default function WorkoutLogger() {
-  const { user, loading } = useAuth();
+  const { user, loading, logout } = useAuth();
   const [selectedExercise, setSelectedExercise] = useState("");
   const [weight, setWeight] = useState(135);
   const [reps, setReps] = useState(8);
@@ -84,7 +86,7 @@ export default function WorkoutLogger() {
     if (sets.length === 0) return;
     try {
       await addDoc(collection(db, "workouts"), {
-        date: FirestoreTimestamp.now(),
+        date: Timestamp.now(),
         sets,
         userId: user.uid,
       });
@@ -106,7 +108,7 @@ export default function WorkoutLogger() {
 
     const temp: Record<string, Record<string, number>> = {};
 
-    snapshot.forEach((doc) => {
+    snapshot.forEach((doc: QueryDocumentSnapshot<DocumentData>) => {
       const workout = doc.data() as WorkoutDoc;
       let dateStr = "";
       if (workout.date && typeof workout.date.toDate === "function") {
@@ -138,7 +140,7 @@ export default function WorkoutLogger() {
 
   useEffect(() => {
     if (user) {
-      fetchChartData();
+      void fetchChartData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
@@ -150,14 +152,13 @@ export default function WorkoutLogger() {
         {user && (
           <div className="absolute right-4 top-0 mt-2 flex items-center gap-2 text-sm">
             <span>{user.displayName || user.email || user.uid.slice(0, 6)}</span>
-            <button onClick={() => logout()} className="underline text-xs">
+            <button onClick={() => void logout()} className="underline text-xs">
               Log out
             </button>
           </div>
         )}
       </header>
 
-      {/* Auth / Loading */}
       {loading && (
         <div className="min-h-screen flex items-center justify-center">
           <div>Loading...</div>
@@ -171,10 +172,8 @@ export default function WorkoutLogger() {
         </div>
       )}
 
-      {/* Main workout UI */}
       {!loading && user && (
         <>
-          {/* Log Workout Section */}
           <section className="bg-white/5 p-6 rounded-2xl shadow-lg max-w-xl mx-auto">
             <h2 className="text-xl font-bold mb-4">Log Workout</h2>
 
@@ -238,7 +237,6 @@ export default function WorkoutLogger() {
               Add Set
             </button>
 
-            {/* Display added sets */}
             {sets.length > 0 && (
               <div className="mb-4">
                 <p className="text-sm mb-2">
@@ -273,7 +271,6 @@ export default function WorkoutLogger() {
             </button>
           </section>
 
-          {/* Progress Section */}
           <section className="mt-10 max-w-5xl mx-auto px-4">
             <h2 className="text-2xl font-bold mb-4">Progress</h2>
             <div className="flex overflow-x-auto gap-4 snap-x snap-mandatory scroll-smooth pb-2">
@@ -291,6 +288,8 @@ export default function WorkoutLogger() {
     </div>
   );
 }
+
+
 
 
 
