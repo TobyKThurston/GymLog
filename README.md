@@ -4,7 +4,7 @@ GymLog is a workout tracking web application built with Next.js and Firebase. It
 
 ## Screenshot
 
-
+![Logging a workout](./screenshots/log-workout.png)
 
 
 ## Features
